@@ -1,0 +1,61 @@
+================================================================================
+ENERGY CONSUMPTION FORECASTING - RESULTS EVALUATION & COMMENTS
+================================================================================
+
+1. PERFORMANCE METRICS OVERVIEW
+--------------------------------------------------------------------------------
+The performance of the three models tested on the energy forecasting dataset 
+is summarized below (sorted by Root Mean Squared Error - RMSE):
+
+Model               | MAE        | RMSE       | R2 Score
+--------------------------------------------------------------------------------
+1. XGBoost          | 134.2096   | 168.1722   | 0.955992
+2. MLP Regressor    | 148.3047   | 185.7097   | 0.946335
+3. Linear Regression| 149.1504   | 187.2748   | 0.945426
+
+
+2. MODEL-SPECIFIC COMMENTS & ANALYSIS
+--------------------------------------------------------------------------------
+### A. XGBoost (Best Performer)
+* Metric Insights: Achieved the lowest error (MAE ~134.2 MW, RMSE ~168.2 MW) and 
+  the highest variance explanation (R2 ≈ 95.6%).
+* Strengths: Gradient boosted trees excel at learning complex interaction boundaries
+  and capturing non-linear relationships without needing extensive feature 
+  transformations. It handles time features and lag attributes exceptionally well, 
+  avoiding overfitting through its ensemble structure and default/configured 
+  regularization parameters.
+
+### B. MLP Regressor (Multi-Layer Perceptron / Neural Network)
+* Metric Insights: MAE ~148.3 MW, RMSE ~185.7 MW, R2 ≈ 94.6%.
+* Analysis: The Neural Network model placed second, performing slightly better 
+  than the baseline Linear Regression but lagging behind XGBoost. While MLPs are 
+  powerful universal approximators, tabular time series data with localized shifted 
+  lag metrics often require more intensive tuning (e.g., specific batch sizes, 
+  learning rates, architectures, or more epochs) to outperform tree-based methods.
+
+### C. Linear Regression (Baseline)
+* Metric Insights: MAE ~149.1 MW, RMSE ~187.3 MW, R2 ≈ 94.5%.
+* Analysis: For a simple, un-regularized baseline model, Linear Regression 
+  performs surprisingly well here. This is primarily because the feature 
+  engineering pipeline explicitly included direct lag terms (`lag_24h` and `lag_7d`). 
+  Because energy consumption is highly autoregressive (today looks a lot like 
+  yesterday and last week), a linear combination of these lags already captures 
+  the majority of the signal.
+
+
+3. KEY TAKEAWAYS & PIPELINE OBSERVATIONS
+--------------------------------------------------------------------------------
+* Lag Features are King: The strong performance across all models (all R2 scores 
+  exceeding 94%) indicates that the engineered lag variables (`lag_24h` and 
+  `lag_7d`) provide a strong autoregressive signal that linear, tree-based, 
+  and neural network structures can easily exploit.
+* Why XGBoost Won: XGBoost successfully captures the residual conditional anomalies 
+  and non-linear interactions between the categorical time indicators (hour, 
+  day of week, month) and the continuous lag variables, which Linear Regression 
+  cannot do without explicit interaction terms.
+* Recommendations for Next Steps:
+  1. Feature expansion: Incorporate rolling averages (e.g., 6-hour or 24-hour window 
+     means/stds) to smooth out stochastic hourly noise.
+  2. Hyperparameter Optimization: Fine-tune the MLP Regressor layer sizes or try 
+     a learning rate scheduler to close the gap with XGBoost.
+================================================================================
